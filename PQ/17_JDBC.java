@@ -1,38 +1,73 @@
 import java.sql.*;
-import java.util.*;
 
-public class StudentDatabase {
-    static final String DB_URL = "jdbc:mysql://localhost/STUDENT";
-    static final String USER = "username";
-    static final String PASS = "password";
+public class StudentData {
 
     public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
-        Connection conn = null;
-        Statement stmt = null;
+
+        // Database connection parameters
+        String url = "jdbc:mysql://localhost:3306/studentdb";
+        String username = "root";
+        String password = "password";
 
         try {
-            Class.forName("com.mysql.jdbc.Driver");
-            System.out.println("Connecting to database...");
-            conn = DriverManager.getConnection(DB_URL, USER, PASS);
-            System.out.println("Connected to database successfully");
+            // Load the JDBC driver
+            Class.forName("com.mysql.cj.jdbc.Driver");
 
-            System.out.println("Enter the number of students:");
-            int n = scanner.nextInt();
+            // Establish a connection to the database
+            Connection connection = DriverManager.getConnection(url, username, password);
 
-            for (int i = 1; i <= n; i++) {
-                System.out.println("Enter the rollno, name, and CGPA of student " + i + ":");
-                int rollno = scanner.nextInt();
-                String name = scanner.next();
-                double cgpa = scanner.nextDouble();
+            // Create a SQL statement
+            String sql = "INSERT INTO students (rollno, name, cgpa) VALUES (?, ?, ?)";
+            PreparedStatement statement = connection.prepareStatement(sql);
 
-                stmt = conn.createStatement();
-                String sql = "INSERT INTO STUDENTS VALUES (" + rollno + ", '" + name + "', " + cgpa + ")";
-                int rowsInserted = stmt.executeUpdate(sql);
+            // Accept input for n students and store data in the database
+            int n = 2; // change this value to accept input for more than 2 students
+            for (int i = 0; i < n; i++) {
+                // Accept input for rollno, name, and cgpa
+                String rollno = "Rollno " + (i + 1);
+                String name = "Name " + (i + 1);
+                double cgpa = 9.5 + i;
 
-                if (rowsInserted > 0) {
-                    System.out.println("Data inserted successfully!");
-                }
+                // Set the values for the SQL statement
+                statement.setString(1, rollno);
+                statement.setString(2, name);
+                statement.setDouble(3, cgpa);
+
+                // Execute the SQL statement
+                statement.executeUpdate();
             }
 
-            System.out.println("List of students having CGPA greater
+            // Close the statement and connection
+            statement.close();
+            connection.close();
+
+            System.out.println("Data stored in database successfully.");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+
+
+import java.sql.*;
+
+public class Main {
+    public static void main(String[] args) {
+        String url = "jdbc:mysql://localhost:3306/mydatabase";
+        String user = "username";
+        String password = "password";
+
+        try (Connection con = DriverManager.getConnection(url, user, password);
+             Statement stmt = con.createStatement();
+             ResultSet rs = stmt.executeQuery("SELECT * FROM students WHERE cgpa > 7")) {
+            while (rs.next()) {
+                System.out.println(rs.getString("name"));
+            }
+        } catch (SQLException ex) {
+            System.out.println("Error: " + ex.getMessage());
+        }
+    }
+}
+
